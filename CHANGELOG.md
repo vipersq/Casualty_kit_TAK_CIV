@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2 (unreleased)
+
+- Body diagram (front and back): tap a body region to record an injury; numbered markers match the list.
+- New look: dark card layout, triage board with counts per precedence, larger touch targets, new icon.
+- Tourniquet time-on and time-since-injury shown on the list and the card, refreshed automatically.
+- Quick-add buttons for common treatments (tourniquet with site, pressure dressing, chest seal, NPA, TXA, hypothermia kit).
+- One dialog for a full set of vitals, with AVPU.
+- Delete a card from this device.
+- CoT: optional `view`, `x`, `y` on `wound` (backward compatible with 0.1).
+
 ## 0.1 (unreleased)
 
 - Casualty list, TCCC card editor, MIST report.

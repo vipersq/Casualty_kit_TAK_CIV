@@ -30,6 +30,9 @@ public class CasualtyStore {
         return true;
     }
 
+    /** Remove a record from this device only. Returns false if it was not present. */
+    public synchronized boolean remove(String uid) { return byUid.remove(uid) != null; }
+
     /** Most urgent first, then longest-waiting first. */
     public synchronized List<Casualty> sorted() {
         List<Casualty> out = new ArrayList<>(byUid.values());

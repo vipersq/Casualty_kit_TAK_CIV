@@ -43,6 +43,13 @@ public class Casualty {
         return best;
     }
 
+    /** The tourniquet that has been on longest, or null. Drives the "time on" display. */
+    public Treatment earliestTourniquet() {
+        Treatment best = null;
+        for (Treatment t : treatments) if (t.isTourniquet() && (best == null || t.time < best.time)) best = t;
+        return best;
+    }
+
     /** Call after any local edit so other devices accept the change. */
     public void touch(long now, String editorCallsign) { rev++; updated = now; editor = editorCallsign == null ? "" : editorCallsign; }
 

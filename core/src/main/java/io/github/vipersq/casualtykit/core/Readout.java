@@ -16,6 +16,12 @@ public final class Readout {
         return f.format(new Date(t)).toUpperCase(Locale.US);
     }
 
+    /** Elapsed time as "45 min" or "2 h 05 min"; "0 min" for anything under a minute or in the future. */
+    public static String elapsed(long from, long now) {
+        long min = Math.max(0, (now - from) / 60000L);
+        return min < 60 ? min + " min" : (min / 60) + " h " + String.format(Locale.US, "%02d", min % 60) + " min";
+    }
+
     public static String mechanism(Casualty c) {
         StringBuilder sb = new StringBuilder();
         for (Tccc.Mechanism m : c.mechanisms) {

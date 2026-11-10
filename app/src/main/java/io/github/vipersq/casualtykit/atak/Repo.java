@@ -40,7 +40,8 @@ class Repo implements CotServiceRemote.CotEventListener {
 
     final CasualtyStore store = new CasualtyStore();
     final VitalsAlerts alerts = new VitalsAlerts();
-    private final File dir = FileSystemUtils.getItem("tools/casualtykit");
+    /** Resolved in {@link #start()} so the class can be constructed without a running ATAK. */
+    private File dir;
     /** Set by the UI; called on the UI thread when a record arrives from the network. */
     Runnable onRemoteChange;
     private boolean started;
@@ -48,6 +49,7 @@ class Repo implements CotServiceRemote.CotEventListener {
     void start() {
         if (started) return;
         started = true;
+        dir = FileSystemUtils.getItem("tools/casualtykit");
         try {
             if (!IOProviderFactory.exists(dir)) IOProviderFactory.mkdirs(dir);
             File[] files = IOProviderFactory.listFiles(dir);
@@ -76,18 +78,20 @@ class Repo implements CotServiceRemote.CotEventListener {
         return cs == null ? "" : cs;
     }
 
-    /** Own position if there is a fix, otherwise the centre of the map. */
-    GeoPoint here(boolean preferSelf) {
+    /** Own position if there is a fix, otherwise the centre of the map, as {lat, lon}. */
+    double[] here(boolean preferSelf) {
         MapView mv = MapView.getMapView();
+        GeoPoint p = null;
         if (preferSelf) {
             Marker self = mv.getSelfMarker();
-            GeoPoint p = self == null ? null : self.getPoint();
-            if (p != null && p.isValid() && !(p.getLatitude() == 0 && p.getLongitude() == 0)) return p;
+            GeoPoint sp = self == null ? null : self.getPoint();
+            if (sp != null && sp.isValid() && !(sp.getLatitude() == 0 && sp.getLongitude() == 0)) p = sp;
         }
-        return mv.getCenterPoint().get();
+        if (p == null) p = mv.getCenterPoint().get();
+        return new double[] { p.getLatitude(), p.getLongitude() };
     }
 
-    static String mgrs(double lat, double lon) {
+    String mgrs(double lat, double lon) {
         try {
             return CoordinateFormatUtilities.formatToString(new GeoPoint(lat, lon), CoordinateFormat.MGRS);
         } catch (Exception e) {
@@ -112,6 +116,19 @@ class Repo implements CotServiceRemote.CotEventListener {
         String xml = CotCodec.toCot(c, System.currentTimeMillis(), STALE_MS);
         write(new File(dir, safe(c.uid) + ".cot"), xml);
         return publish(xml, send);
+    }
+
+    /** Remove a card from this device and take its marker off the map. Other devices keep their copy. */
+    void delete(String uid) {
+        store.remove(uid);
+        try {
+            File f = new File(dir, safe(uid) + ".cot");
+            if (IOProviderFactory.exists(f)) IOProviderFactory.delete(f);
+        } catch (Exception e) {
+            Log.e(TAG, "could not delete saved card", e);
+        }
+        MapItem mi = MapView.getMapView().getRootGroup().deepFindUID(uid);
+        if (mi != null) mi.removeFromGroup();
     }
 
     boolean send(NineLine n) {

@@ -136,4 +136,56 @@ class CoreTest {
         assertTrue(m.contains("S: HR 112 RR 22 @102010ZNOV26"), m);
         assertTrue(m.contains("T: TQ-EXTREMITY (L leg high & tight); ANALGESIC (Ketamine 50 mg IM)"));
     }
+
+    @Test void bodyMapRegions() {
+        assertEquals("Head", BodyMap.regionAt(BodyMap.FRONT, 50, 16).name);
+        assertNull(BodyMap.regionAt(BodyMap.FRONT, 40, 3), "corner of the head box is outside the oval");
+        assertEquals("Chest", BodyMap.regionAt(BodyMap.FRONT, 50, 50).name);
+        assertEquals("Upper back", BodyMap.regionAt(BodyMap.BACK, 50, 50).name);
+        assertEquals("Abdomen", BodyMap.regionAt(BodyMap.FRONT, 50, 85).name);
+        assertEquals("Buttocks", BodyMap.regionAt(BodyMap.BACK, 50, 105).name);
+        // Front view: casualty's right is on the viewer's left. Back view is mirrored.
+        assertEquals("R thigh", BodyMap.regionAt(BodyMap.FRONT, 40, 130).name);
+        assertEquals("L thigh", BodyMap.regionAt(BodyMap.FRONT, 60, 130).name);
+        assertEquals("L thigh (back)", BodyMap.regionAt(BodyMap.BACK, 40, 130).name);
+        assertEquals("R forearm (back)", BodyMap.regionAt(BodyMap.BACK, 78, 90).name);
+        assertEquals("R hand", BodyMap.regionAt(BodyMap.FRONT, 20, 115).name);
+        assertEquals("L foot", BodyMap.regionAt(BodyMap.FRONT, 60, 208).name);
+        assertNull(BodyMap.regionAt(BodyMap.FRONT, 5, 5));
+        assertNull(BodyMap.regionAt(BodyMap.FRONT, 50, 180), "gap between the legs");
+        // every region is inside the view box and reachable at its own centre
+        for (String v : new String[] { BodyMap.FRONT, BodyMap.BACK }) {
+            assertEquals(17, BodyMap.regions(v).size());
+            for (BodyMap.Region r : BodyMap.regions(v)) {
+                assertTrue(r.x0 >= 0 && r.x1 <= BodyMap.WIDTH && r.y0 >= 0 && r.y1 <= BodyMap.HEIGHT, r.name);
+                assertNotNull(BodyMap.regionAt(v, (r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2), r.name);
+            }
+        }
+    }
+
+    @Test void injuryDiagramPositionRoundTrip() {
+        Casualty a = sample();
+        a.injuries.add(new Injury("R thigh", "GSW").at(BodyMap.FRONT, 0.4f, 0.591f));
+        Casualty b = CotCodec.casualtyFromCot(CotCodec.toCot(a, T0, 1000));
+        assertFalse(b.injuries.get(0).onDiagram(), "old-style injury keeps working without a position");
+        Injury i = b.injuries.get(2);
+        assertTrue(i.onDiagram()); assertEquals(BodyMap.FRONT, i.view);
+        assertEquals(0.4f, i.x, 0.0006f); assertEquals(0.591f, i.y, 0.0006f);
+        Casualty bad = CotCodec.casualtyFromCot("<event uid='x'><point lat='1' lon='2'/><detail><__casualtykit><injury><wound loc='a' kind='b' view='SIDE' x='0.5' y='0.5'/><wound loc='c' kind='d' view='FRONT' x='7' y='0.5'/></injury></__casualtykit></detail></event>");
+        assertFalse(bad.injuries.get(0).onDiagram()); assertFalse(bad.injuries.get(1).onDiagram());
+    }
+
+    @Test void tourniquetAndElapsed() {
+        Casualty c = sample();
+        assertEquals(T0 + 60_000, c.earliestTourniquet().time);
+        c.treatments.add(new Treatment(T0 + 10_000, Tccc.March.M, Treatment.TQ_JUNCTIONAL, ""));
+        assertEquals(T0 + 10_000, c.earliestTourniquet().time);
+        assertNull(new Casualty().earliestTourniquet());
+        assertEquals("0 min", Readout.elapsed(T0, T0 + 59_000));
+        assertEquals("45 min", Readout.elapsed(T0, T0 + 45 * 60_000));
+        assertEquals("2 h 05 min", Readout.elapsed(T0, T0 + 125 * 60_000));
+        assertEquals("0 min", Readout.elapsed(T0, T0 - 5000));
+        CasualtyStore s = new CasualtyStore(); s.putLocal(c);
+        assertTrue(s.remove(c.uid)); assertFalse(s.remove(c.uid)); assertEquals(0, s.size());
+    }
 }

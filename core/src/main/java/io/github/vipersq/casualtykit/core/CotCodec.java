@@ -71,6 +71,11 @@ public final class CotCodec {
             inj.setAttribute("moi", moi.toString());
             for (Injury i : c.injuries) {
                 Element w = child(d, inj, "wound"); w.setAttribute("loc", i.location); w.setAttribute("kind", i.type);
+                if (i.onDiagram()) {
+                    w.setAttribute("view", i.view);
+                    w.setAttribute("x", String.format(Locale.US, "%.3f", i.x));
+                    w.setAttribute("y", String.format(Locale.US, "%.3f", i.y));
+                }
             }
             for (Vitals v : c.vitals) {
                 Element e = child(d, k, "vitals");
@@ -124,7 +129,11 @@ public final class CotCodec {
                 NodeList ws = inj.getElementsByTagName("wound");
                 for (int i = 0; i < ws.getLength(); i++) {
                     Element w = (Element) ws.item(i);
-                    c.injuries.add(new Injury(w.getAttribute("loc"), w.getAttribute("kind")));
+                    Injury in = new Injury(w.getAttribute("loc"), w.getAttribute("kind"));
+                    float wx = (float) dbl(w, "x", -1), wy = (float) dbl(w, "y", -1);
+                    String wv = w.getAttribute("view");
+                    if ((BodyMap.FRONT.equals(wv) || BodyMap.BACK.equals(wv)) && wx >= 0 && wx <= 1 && wy >= 0 && wy <= 1) in.at(wv, wx, wy);
+                    c.injuries.add(in);
                 }
             }
             NodeList vs = k.getElementsByTagName("vitals");

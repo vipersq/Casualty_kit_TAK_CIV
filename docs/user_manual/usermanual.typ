@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "CasualtyKit",
-   plugin-version: "0.1",
+   plugin-version: "0.2",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -24,9 +24,11 @@ This software is unvalidated and is not a medical device. Vital-sign alert limit
 
 Select the CasualtyKit toolbar button to open the list. Casualties are sorted by evacuation precedence, then by time of injury. The coloured bar shows precedence: red urgent, amber priority, green routine.
 
-- *New at my position* creates a card at the device location.
-- *New at map centre* creates a card at the centre of the map view.
-- Select a casualty to open the card.
+The boxes at the top count open casualties per precedence, A to E.
+
+- *At my position* creates a card at the device location.
+- *At map centre* creates a card at the centre of the map view.
+- Select a casualty to open the card. Each row shows the latest vitals, time since injury and how long a tourniquet has been on.
 ]
 
 #tak-slide[
@@ -34,10 +36,14 @@ Select the CasualtyKit toolbar button to open the list. Casualties are sorted by
 
 The card holds identity, evacuation precedence, mechanism and time of injury, injuries, vital signs, treatments grouped by MARCH, and notes.
 
+- *Injuries*: tap the front or back body figure where the casualty is injured, then choose the type. Each injury gets a numbered marker.
+- *Treatments*: the quick-add buttons record a common treatment at the current time. A tourniquet shows how long it has been on.
+
 - *Save + Send* stores the card, updates the marker and sends it to the team.
 - *Save only* stores the card on this device.
 - *MIST report* shows the MIST text for voice or chat.
 - *Show on map* pans to the marker.
+- *Delete card from this device* removes the card and marker locally; other devices keep theirs.
 
 When two devices edit the same card, the most recent edit is kept on every device.
 ]
