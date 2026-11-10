@@ -1,0 +1,19 @@
+name: core tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      # The plugin itself needs the ATAK SDK from tak.gov, which cannot be redistributed,
+      # so CI covers the platform-neutral core only.
+      - run: chmod +x gradlew && ./gradlew -p core test --console=plain

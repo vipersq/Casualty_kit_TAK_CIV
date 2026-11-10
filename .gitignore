@@ -1,0 +1,13 @@
+.gradle/
+.takdev/
+build/
+app/build/
+core/build/
+core/.gradle/
+dist/
+local.properties
+*.apk
+*.keystore
+app/proguard-gradle-repackage.txt
+.idea/
+*.iml

@@ -1,0 +1,2 @@
+// Standalone build for the platform-neutral core and its unit tests: ./gradlew -p core test
+rootProject.name = 'casualtykit-core'
