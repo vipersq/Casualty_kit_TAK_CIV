@@ -4,9 +4,11 @@ An ATAK plugin for casualty reporting: a digital TCCC card (DD Form 1380), MARCH
 a vital-signs log with alerts, MIST reports, and 9-line MEDEVAC requests built from the cards.
 Everything is shared with the team as standard Cursor-on-Target (CoT).
 
-> **Status: early test build (v0.4).** The code compiles against the ATAK-CIV 5.5.0 SDK and the
-> core logic is unit-tested, but the plugin has not yet been exercised on a device.
-> This software is unvalidated and is **not a medical device**.
+<p align="center"><img src="docs/icons/icon_C.png" width="96" alt="CasualtyKit icon"></p>
+
+> **Status: early test build (v0.4).** The code compiles against the ATAK-CIV 5.5.0 SDK, the tak.gov
+> pipeline has built and signed it for ATAK 5.8.0, and the core logic is unit-tested. Device testing
+> so far is brief and informal. This software is unvalidated and is **not a medical device**.
 
 ## What it does
 
@@ -15,11 +17,26 @@ Everything is shared with the team as standard Cursor-on-Target (CoT).
   treatments grouped by MARCH, notes.
 - **Body diagram**: tap the front or back figure to record where the casualty is injured.
 - **Tourniquet clock**: time-on for every tourniquet, shown on the list and the card.
-- **Map markers**: each card is a marker any TAK client can see, with the MIST report in its remarks.
+- **Map markers**: each card is a marker with the MIST report in its remarks. With the plugin the
+  marker is a status icon (below); any other TAK client sees a coloured dot.
+- **Statuses**: active, evacuation requested, evacuated, returned to duty, KIA (military) and
+  deceased (civilian). The dead are left out of 9-line requests.
 - **Team sync**: cards merge across devices; the most recent edit wins on every device.
 - **Alerts** when a received or entered set of vitals crosses the configured limits.
 - **9-line MEDEVAC**: lines 3, 5 and 8 are filled in from the selected cards. The request is sent in
   the stock ATAK CASEVAC format, so clients without the plugin open it in their built-in tool.
+
+## Screens and symbols
+
+Body diagram used on the card. Regions are tapped by their outline; numbered markers match the injury list.
+
+<p align="center"><img src="docs/img/body-diagram.png" width="520" alt="Front and back body diagram with numbered injury markers"></p>
+
+Map marker icons. Colour is the evacuation precedence, the symbol is the status.
+
+<p align="center"><img src="docs/img/map-markers.png" width="560" alt="Map marker icons by status"></p>
+
+These two pictures are design previews drawn from the plugin's geometry and colours, not device screenshots.
 
 ## Platforms
 
