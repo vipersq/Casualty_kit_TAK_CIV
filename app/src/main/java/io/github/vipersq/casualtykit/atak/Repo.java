@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.atakmap.android.cot.CotMapComponent;
+import com.atakmap.android.maps.MapEvent;
+import com.atakmap.android.maps.MapEventDispatcher;
 import com.atakmap.android.maps.MapItem;
 import com.atakmap.android.maps.MapView;
 import com.atakmap.android.maps.Marker;
@@ -16,6 +18,7 @@ import com.atakmap.coremap.cot.event.CotEvent;
 import com.atakmap.coremap.filesystem.FileSystemUtils;
 import com.atakmap.coremap.io.IOProviderFactory;
 import com.atakmap.coremap.log.Log;
+import com.atakmap.coremap.maps.assets.Icon;
 import com.atakmap.coremap.maps.coords.GeoPoint;
 
 import java.io.ByteArrayOutputStream;
@@ -45,6 +48,18 @@ class Repo implements CotServiceRemote.CotEventListener {
     /** Set by the UI; called on the UI thread when a record arrives from the network. */
     Runnable onRemoteChange;
     private boolean started;
+    private static final String META_ICON = "casualtykit_icon";
+    /** Gives our markers their status icon whenever ATAK adds or refreshes them (also after a restart). */
+    private final MapEventDispatcher.MapEventDispatchListener iconListener = new MapEventDispatcher.MapEventDispatchListener() {
+        @Override public void onMapEvent(MapEvent event) {
+            try {
+                MapItem item = event.getItem();
+                if (item != null) applyIcon(item, false);
+            } catch (Exception e) {
+                Log.e(TAG, "could not set marker icon", e);
+            }
+        }
+    };
 
     void start() {
         if (started) return;
@@ -64,12 +79,58 @@ class Repo implements CotServiceRemote.CotEventListener {
             Log.e(TAG, "could not load saved casualties", e);
         }
         CommsMapComponent.getInstance().addOnCotEventListener(this);
+        MapEventDispatcher med = MapView.getMapView().getMapEventDispatcher();
+        med.addMapEventListener(MapEvent.ITEM_ADDED, iconListener);
+        med.addMapEventListener(MapEvent.ITEM_REFRESH, iconListener);
+        for (Casualty c : store.sorted()) refreshIcon(c.uid);
     }
 
     void stop() {
         if (!started) return;
         started = false;
         CommsMapComponent.getInstance().removeOnCotEventListener(this);
+        MapEventDispatcher med = MapView.getMapView().getMapEventDispatcher();
+        med.removeMapEventListener(MapEvent.ITEM_ADDED, iconListener);
+        med.removeMapEventListener(MapEvent.ITEM_REFRESH, iconListener);
+    }
+
+    /** Casualty markers carry our UID prefix; 9-line markers keep the stock CASEVAC icon. */
+    private static boolean isCasualtyUid(String uid) {
+        return uid != null && uid.startsWith("CASKIT-") && !uid.startsWith("CASKIT-9L-");
+    }
+
+    private void applyIcon(MapItem item, boolean force) {
+        if (!(item instanceof Marker) || !isCasualtyUid(item.getUID())) return;
+        Casualty c = store.get(item.getUID());
+        if (c == null) return;
+        String key = MarkerIcons.key(c);
+        if (!force && key.equals(item.getMetaString(META_ICON, ""))) return;
+        Marker m = (Marker) item;
+        // Stop ATAK from replacing the icon with the plain spot-marker dot.
+        m.setMetaBoolean("adapt_marker_icon", false);
+        m.setIcon(new Icon.Builder().setImageUri(Icon.STATE_DEFAULT, MarkerIcons.uri(c))
+                .setSize(MarkerIcons.DISPLAY, MarkerIcons.DISPLAY).build());
+        m.setMetaString(META_ICON, key);
+    }
+
+    /**
+     * Re-apply the icon after a card was saved or received. ATAK builds the marker from the CoT
+     * shortly after dispatch and may reset the icon while doing so, hence the two delayed passes.
+     */
+    private void refreshIcon(final String uid) {
+        final MapView mv = MapView.getMapView();
+        Runnable r = new Runnable() {
+            @Override public void run() {
+                try {
+                    MapItem mi = mv.getRootGroup().deepFindUID(uid);
+                    if (mi != null) applyIcon(mi, true);
+                } catch (Exception e) {
+                    Log.e(TAG, "could not refresh marker icon", e);
+                }
+            }
+        };
+        mv.postDelayed(r, 400);
+        mv.postDelayed(r, 2500);
     }
 
     String callsign() {
@@ -115,7 +176,9 @@ class Repo implements CotServiceRemote.CotEventListener {
         store.putLocal(c);
         String xml = CotCodec.toCot(c, System.currentTimeMillis(), STALE_MS);
         write(new File(dir, safe(c.uid) + ".cot"), xml);
-        return publish(xml, send);
+        boolean ok = publish(xml, send);
+        refreshIcon(c.uid);
+        return ok;
     }
 
     /** Remove a card from this device and take its marker off the map. Other devices keep their copy. */
@@ -158,6 +221,7 @@ class Repo implements CotServiceRemote.CotEventListener {
             Vitals before = old == null ? null : old.latestVitals();
             if (!store.mergeRemote(c)) return;
             write(new File(dir, safe(c.uid) + ".cot"), CotCodec.toCot(c, System.currentTimeMillis(), STALE_MS));
+            refreshIcon(c.uid);
             final List<String> fresh = alerts.newAlerts(before, c.latestVitals());
             final MapView mv = MapView.getMapView();
             mv.post(new Runnable() {

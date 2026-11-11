@@ -6,7 +6,10 @@ This is the contract shared by the ATAK and WinTAK plugins. Both must read and w
 
 - Event type `b-m-p-s-m` (spot marker), so clients without the plugin still show a marker.
 - `<contact callsign>` is the battle roster number, or `CAS-xxxx` if none is set.
-- `<color argb>` follows evacuation precedence: red urgent, amber priority, green routine.
+- `<color argb>` follows evacuation precedence: red urgent, amber priority, green routine. For a dead
+  casualty it is near-black.
+- `status` is one of `ACTIVE`, `EVAC_REQUESTED`, `EVACUATED`, `RETURNED_TO_DUTY`, `DECEASED` (civilian)
+  or `KIA` (military, added in v0.4). A reader must treat an unknown status as `ACTIVE`.
 - `<remarks>` holds the MIST report as text, readable on any client.
 - `<__casualtykit v="1">` holds the full DD Form 1380 content. Only the plugin reads it.
 

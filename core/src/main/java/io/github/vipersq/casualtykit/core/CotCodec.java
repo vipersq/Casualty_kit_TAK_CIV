@@ -45,7 +45,7 @@ public final class CotCodec {
             Document d = newDoc();
             Element detail = event(d, c.uid, TYPE_CASUALTY, now, staleMs, c.lat, c.lon, c.hae);
             child(d, detail, "contact").setAttribute("callsign", c.label());
-            child(d, detail, "color").setAttribute("argb", String.valueOf(c.precedence.argb));
+            child(d, detail, "color").setAttribute("argb", String.valueOf(c.status.isDead() ? Tccc.DEAD_ARGB : c.precedence.argb));
             child(d, detail, "remarks").setTextContent(Readout.mist(c));
 
             Element k = child(d, detail, DETAIL_CASUALTY);

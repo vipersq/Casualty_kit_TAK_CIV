@@ -33,11 +33,16 @@ public class CasualtyStore {
     /** Remove a record from this device only. Returns false if it was not present. */
     public synchronized boolean remove(String uid) { return byUid.remove(uid) != null; }
 
-    /** Most urgent first, then longest-waiting first. */
+    /** On-scene casualties first, then the evacuated and returned to duty, the dead last. */
+    private static int group(Casualty c) { return c.status.isOpen() ? 0 : c.status.isDead() ? 2 : 1; }
+
+    /** Casualties still on scene first; within a group most urgent first, then longest-waiting first. */
     public synchronized List<Casualty> sorted() {
         List<Casualty> out = new ArrayList<>(byUid.values());
         Collections.sort(out, new Comparator<Casualty>() {
             @Override public int compare(Casualty a, Casualty b) {
+                int g = Integer.compare(group(a), group(b));
+                if (g != 0) return g;
                 int p = a.precedence.compareTo(b.precedence);
                 return p != 0 ? p : Long.compare(a.timeOfInjury, b.timeOfInjury);
             }

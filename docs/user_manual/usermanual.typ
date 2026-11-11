@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "CasualtyKit",
-   plugin-version: "0.3",
+   plugin-version: "0.4",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -46,6 +46,8 @@ The card holds identity, evacuation precedence, mechanism and time of injury, in
 - *Delete card from this device* removes the card and marker locally; other devices keep theirs.
 
 When two devices edit the same card, the most recent edit is kept on every device.
+
+On the map each casualty has a round icon. Its colour is the evacuation precedence and its symbol is the status: a cross while on scene, an arrow once evacuation is requested or completed, a tick for returned to duty, and a black badge for KIA (military) or deceased (civilian).
 ]
 
 #tak-slide[

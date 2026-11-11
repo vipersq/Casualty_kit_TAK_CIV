@@ -116,21 +116,36 @@ class Ui {
         startClocks();
     }
 
-    private static boolean isOpen(Casualty c) {
-        return c.status == Tccc.Status.ACTIVE || c.status == Tccc.Status.EVAC_REQUESTED;
+    private static boolean isOpen(Casualty c) { return c.status.isOpen(); }
+
+    /** Status names as shown to the user; DECEASED is the civilian term, KIA the military one. */
+    private static String statusLabel(Tccc.Status st) {
+        switch (st) {
+            case DECEASED: return "DECEASED (civilian)";
+            case KIA: return "KIA (military)";
+            default: return st.name().replace('_', ' ');
+        }
+    }
+    private static String[] statusLabels() {
+        Tccc.Status[] v = Tccc.Status.values();
+        String[] out = new String[v.length];
+        for (int i = 0; i < v.length; i++) out[i] = statusLabel(v[i]);
+        return out;
     }
 
     private View listRow(final Casualty c) {
-        final int colour = c.status == Tccc.Status.DECEASED ? Style.GREY : isOpen(c) ? c.precedence.argb : Style.GREY;
+        final boolean dead = c.status.isDead();
+        final int colour = dead ? Tccc.DEAD_ARGB : isOpen(c) ? c.precedence.argb : Style.GREY;
         LinearLayout row = new LinearLayout(ctx);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setBaselineAligned(false);
         row.setBackground(Style.pressable(Style.CARD, Style.STROKE, px(10), px(1)));
         row.setOnClickListener(v -> showCard(copy(c), false));
 
-        TextView badge = text(String.valueOf(c.precedence.letter), 22, true, Style.on(colour));
+        TextView badge = dead ? text(c.status == Tccc.Status.KIA ? "KIA" : "DEC", 13, true, 0xFFFFFFFF)
+                : text(String.valueOf(c.precedence.letter), 22, true, Style.on(colour));
         badge.setGravity(Gravity.CENTER);
-        badge.setBackground(Style.round(colour, 0, px(8), 0));
+        badge.setBackground(Style.round(colour, dead ? Style.MUTED : 0, px(8), dead ? px(1) : 0));
         LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(px(46), ViewGroup.LayoutParams.MATCH_PARENT);
         blp.setMargins(px(8), px(8), px(4), px(8));
         row.addView(badge, blp);
@@ -138,8 +153,8 @@ class Ui {
         LinearLayout body = column();
         body.setPadding(px(6), px(8), px(8), px(8));
         body.addView(text(c.label() + (c.name.isEmpty() ? "" : "   " + c.name), 16, true, Style.TEXT));
-        body.addView(text(c.precedence.name().replace('_', ' ') + "  ·  " + c.patientType
-                + (c.status == Tccc.Status.ACTIVE ? "" : "  ·  " + c.status.name().replace('_', ' ')), 12, false, Style.MUTED));
+        body.addView(text(dead ? statusLabel(c.status) : c.precedence.name().replace('_', ' ') + "  ·  " + c.patientType
+                + (c.status == Tccc.Status.ACTIVE ? "" : "  ·  " + statusLabel(c.status)), 12, false, Style.MUTED));
         Vitals v = c.latestVitals();
         body.addView(text(v == null ? "No vitals recorded" : v.summary(), 13, false, v == null ? Style.MUTED : Style.TEXT));
 
@@ -208,7 +223,7 @@ class Ui {
                 picker("Type", names(Tccc.PatientType.values()), c.patientType.ordinal(), i -> c.patientType = Tccc.PatientType.values()[i])));
         ev.addView(row(
                 picker("Nationality", names(Tccc.Nationality.values()), c.nationality.ordinal(), i -> c.nationality = Tccc.Nationality.values()[i]),
-                picker("Status", names(Tccc.Status.values()), c.status.ordinal(), i -> c.status = Tccc.Status.values()[i])));
+                picker("Status", statusLabels(), c.status.ordinal(), i -> c.status = Tccc.Status.values()[i])));
         col.addView(ev);
 
         // --- mechanism

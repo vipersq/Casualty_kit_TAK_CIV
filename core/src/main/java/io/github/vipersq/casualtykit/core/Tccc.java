@@ -22,7 +22,18 @@ public final class Tccc {
     /** DD1380 mechanism of injury. */
     public enum Mechanism { ARTILLERY, BLUNT, BURN, FALL, GRENADE, GSW, IED, LANDMINE, MVC, RPG, OTHER }
     public enum Avpu { ALERT, VERBAL, PAIN, UNRESPONSIVE }
-    public enum Status { ACTIVE, EVAC_REQUESTED, EVACUATED, RETURNED_TO_DUTY, DECEASED }
+    /**
+     * DECEASED is the civilian term and KIA the military one; the plugin treats them the same.
+     * New values go at the end: older plugin versions read an unknown status as ACTIVE.
+     */
+    public enum Status {
+        ACTIVE, EVAC_REQUESTED, EVACUATED, RETURNED_TO_DUTY, DECEASED, KIA;
+        public boolean isDead() { return this == DECEASED || this == KIA; }
+        /** Still on scene and needing care or evacuation. */
+        public boolean isOpen() { return this == ACTIVE || this == EVAC_REQUESTED; }
+    }
+    /** Marker colour for the dead, used instead of the precedence colour. */
+    public static final int DEAD_ARGB = 0xFF1A1A1A;
     /** MARCH grouping used for treatments on the card. */
     public enum March {
         M("Massive haemorrhage"), A("Airway"), R("Respiration"), C("Circulation"),

@@ -206,4 +206,28 @@ class CoreTest {
         CasualtyStore s = new CasualtyStore(); s.putLocal(c);
         assertTrue(s.remove(c.uid)); assertFalse(s.remove(c.uid)); assertEquals(0, s.size());
     }
+
+    @Test void kiaAndDeceased() {
+        Casualty mil = sample(); mil.status = Tccc.Status.KIA;
+        Casualty civ = new Casualty(); civ.status = Tccc.Status.DECEASED; civ.nationality = Tccc.Nationality.NONUS_CIVILIAN;
+        Casualty live = new Casualty();
+        assertTrue(Tccc.Status.KIA.isDead()); assertTrue(Tccc.Status.DECEASED.isDead()); assertFalse(Tccc.Status.EVACUATED.isDead());
+        assertFalse(Tccc.Status.KIA.isOpen()); assertTrue(Tccc.Status.EVAC_REQUESTED.isOpen()); assertFalse(Tccc.Status.RETURNED_TO_DUTY.isOpen());
+        // the dead are never counted in an evacuation request
+        NineLine n = NineLine.fromCasualties("MED.1", Arrays.asList(mil, civ, live), 0, 0);
+        assertEquals(1, n.total()); assertEquals(Arrays.asList(live.uid), n.casualtyUids);
+        // status survives the wire, and the marker colour is dark instead of the precedence colour
+        String xml = CotCodec.toCot(mil, T0, 1000);
+        assertTrue(xml.contains("status=\"KIA\"")); assertTrue(xml.contains("argb=\"" + Tccc.DEAD_ARGB + "\""), xml);
+        assertEquals(Tccc.Status.KIA, CotCodec.casualtyFromCot(xml).status);
+        assertEquals(Tccc.Status.DECEASED, CotCodec.casualtyFromCot(CotCodec.toCot(civ, T0, 1000)).status);
+        assertTrue(Readout.mist(mil).startsWith("MIST JS1234 [KIA]"), Readout.mist(mil));
+        // on the board the dead sink below everyone else, whatever their precedence was
+        Casualty gone = new Casualty(); gone.status = Tccc.Status.EVACUATED; gone.precedence = Tccc.Precedence.URGENT;
+        mil.precedence = Tccc.Precedence.URGENT; live.precedence = Tccc.Precedence.ROUTINE;
+        CasualtyStore st = new CasualtyStore(); st.putLocal(mil); st.putLocal(gone); st.putLocal(live);
+        assertEquals(Arrays.asList(live.uid, gone.uid, mil.uid), Arrays.asList(st.sorted().get(0).uid, st.sorted().get(1).uid, st.sorted().get(2).uid));
+        // a status this version does not know falls back to ACTIVE instead of failing
+        assertEquals(Tccc.Status.ACTIVE, CotCodec.casualtyFromCot(xml.replace("status=\"KIA\"", "status=\"FUTURE\"")).status);
+    }
 }

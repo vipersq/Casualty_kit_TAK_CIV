@@ -46,7 +46,8 @@ public final class Readout {
     }
 
     public static String mist(Casualty c) {
-        return "MIST " + c.label() + " [" + c.precedence.letter + " " + c.precedence + ", " + c.patientType + "]\n"
+        String head = c.status.isDead() ? c.status.name() : c.precedence.letter + " " + c.precedence + ", " + c.patientType;
+        return "MIST " + c.label() + " [" + head + "]\n"
                 + "M: " + mechanism(c) + " @" + dtg(c.timeOfInjury) + "\n"
                 + "I: " + injuries(c) + "\n"
                 + "S: " + signs(c) + "\n"

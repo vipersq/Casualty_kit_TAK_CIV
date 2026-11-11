@@ -39,13 +39,12 @@ public class NineLine {
     public List<String> casualtyUids = new ArrayList<>();
     public List<String[]> zmist = new ArrayList<>();
 
-    /** Fill lines 3, 5 and 8 and the MIST list from the cards. Deceased and already evacuated casualties are skipped. */
+    /** Fill lines 3, 5 and 8 and the MIST list from the cards. Only casualties still on scene are counted; the dead, the evacuated and those returned to duty are skipped. */
     public static NineLine fromCasualties(String title, List<Casualty> cards, double lat, double lon) {
         NineLine n = new NineLine();
         n.title = title; n.lat = lat; n.lon = lon;
         for (Casualty c : cards) {
-            if (c.status == Tccc.Status.DECEASED || c.status == Tccc.Status.EVACUATED
-                    || c.status == Tccc.Status.RETURNED_TO_DUTY) continue;
+            if (!c.status.isOpen()) continue;
             n.precedence[c.precedence.ordinal()]++;
             n.nationality[c.nationality.ordinal()]++;
             if (c.patientType == Tccc.PatientType.LITTER) n.litter++; else n.ambulatory++;

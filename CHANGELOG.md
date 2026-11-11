@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4 (unreleased)
+
+- Map markers: a larger status icon replaces the plain dot. Colour follows evacuation precedence;
+  the symbol follows status (cross on scene, arrow for evacuation requested or done, tick for
+  returned to duty, black badge for the dead). Devices without the plugin still see a coloured dot.
+- New status KIA (military) next to DECEASED (civilian). Both are excluded from 9-line requests,
+  shown in black and sorted to the bottom of the list.
+
 ## 0.3 (unreleased)
 
 - Body diagram redrawn as a smooth anatomical figure; regions are tapped by their real outline, and a
