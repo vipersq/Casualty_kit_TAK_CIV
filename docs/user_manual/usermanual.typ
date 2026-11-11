@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "CasualtyKit",
-   plugin-version: "0.2",
+   plugin-version: "0.3",
    platform: "ATAK",
    platform-version: "5.8.0",
 )

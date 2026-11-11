@@ -13,7 +13,7 @@ This software is unvalidated and is not a medical device.
 _________________________________________________________________
 STATUS
 
-In progress. Version 0.2, test build. Not released.
+In progress. Version 0.3, test build. Not released.
 
 _________________________________________________________________
 POINT OF CONTACTS

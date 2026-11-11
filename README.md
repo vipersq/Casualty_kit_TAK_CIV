@@ -4,7 +4,7 @@ An ATAK plugin for casualty reporting: a digital TCCC card (DD Form 1380), MARCH
 a vital-signs log with alerts, MIST reports, and 9-line MEDEVAC requests built from the cards.
 Everything is shared with the team as standard Cursor-on-Target (CoT).
 
-> **Status: early test build (v0.2).** The code compiles against the ATAK-CIV 5.5.0 SDK and the
+> **Status: early test build (v0.3).** The code compiles against the ATAK-CIV 5.5.0 SDK and the
 > core logic is unit-tested, but the plugin has not yet been exercised on a device.
 > This software is unvalidated and is **not a medical device**.
 
@@ -25,7 +25,7 @@ Everything is shared with the team as standard Cursor-on-Target (CoT).
 
 | Platform | State |
 |---|---|
-| ATAK (Android) | v0.2, this repository |
+| ATAK (Android) | v0.3, this repository |
 | WinTAK (Windows) | Planned. Will share the CoT format in [`docs/COT-SPEC.md`](docs/COT-SPEC.md) |
 | iTAK (iOS) | No plugin planned; iTAK users see the markers and MIST text |
 

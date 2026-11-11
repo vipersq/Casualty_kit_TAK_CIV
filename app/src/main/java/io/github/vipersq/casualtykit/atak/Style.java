@@ -11,7 +11,7 @@ final class Style {
     static final int BG = 0xFF14171C, CARD = 0xFF1F242B, FIELD = 0xFF161A20, STROKE = 0xFF2E353F;
     static final int TEXT = 0xFFF2F4F7, MUTED = 0xFF9AA4B2;
     static final int GREEN = 0xFF2ECC71, RED = 0xFFE5484D, AMBER = 0xFFF5A524, BLUE = 0xFF4DA3FF, GREY = 0xFF5B6573;
-    static final int BODY = 0xFF3A424D, BODY_STROKE = 0xFF6B7685, BODY_PRESSED = 0xFF4DA3FF;
+    static final int BODY = 0xFF454F5C, BODY_STROKE = 0xFF8A96A6, BODY_PRESSED = 0xFF4DA3FF;
 
     static GradientDrawable round(int fill, int stroke, float radiusPx, int strokePx) {
         GradientDrawable g = new GradientDrawable();

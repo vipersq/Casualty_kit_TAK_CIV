@@ -138,28 +138,46 @@ class CoreTest {
     }
 
     @Test void bodyMapRegions() {
-        assertEquals("Head", BodyMap.regionAt(BodyMap.FRONT, 50, 16).name);
-        assertNull(BodyMap.regionAt(BodyMap.FRONT, 40, 3), "corner of the head box is outside the oval");
+        assertEquals("Head", BodyMap.regionAt(BodyMap.FRONT, 50, 14).name);
+        assertEquals("Neck", BodyMap.regionAt(BodyMap.FRONT, 50, 29).name);
         assertEquals("Chest", BodyMap.regionAt(BodyMap.FRONT, 50, 50).name);
         assertEquals("Upper back", BodyMap.regionAt(BodyMap.BACK, 50, 50).name);
         assertEquals("Abdomen", BodyMap.regionAt(BodyMap.FRONT, 50, 85).name);
         assertEquals("Buttocks", BodyMap.regionAt(BodyMap.BACK, 50, 105).name);
         // Front view: casualty's right is on the viewer's left. Back view is mirrored.
-        assertEquals("R thigh", BodyMap.regionAt(BodyMap.FRONT, 40, 130).name);
-        assertEquals("L thigh", BodyMap.regionAt(BodyMap.FRONT, 60, 130).name);
-        assertEquals("L thigh (back)", BodyMap.regionAt(BodyMap.BACK, 40, 130).name);
-        assertEquals("R forearm (back)", BodyMap.regionAt(BodyMap.BACK, 78, 90).name);
+        assertEquals("R thigh", BodyMap.regionAt(BodyMap.FRONT, 40, 135).name);
+        assertEquals("L thigh", BodyMap.regionAt(BodyMap.FRONT, 60, 135).name);
+        assertEquals("L thigh (back)", BodyMap.regionAt(BodyMap.BACK, 40, 135).name);
+        assertEquals("R forearm (back)", BodyMap.regionAt(BodyMap.BACK, 76, 92).name);
+        assertEquals("R upper arm", BodyMap.regionAt(BodyMap.FRONT, 28, 58).name);
         assertEquals("R hand", BodyMap.regionAt(BodyMap.FRONT, 20, 115).name);
-        assertEquals("L foot", BodyMap.regionAt(BodyMap.FRONT, 60, 208).name);
+        assertEquals("L lower leg", BodyMap.regionAt(BodyMap.FRONT, 59, 185).name);
+        assertEquals("L foot", BodyMap.regionAt(BodyMap.FRONT, 60, 211).name);
+        // well off the body
         assertNull(BodyMap.regionAt(BodyMap.FRONT, 5, 5));
-        assertNull(BodyMap.regionAt(BodyMap.FRONT, 50, 180), "gap between the legs");
-        // every region is inside the view box and reachable at its own centre
+        assertNull(BodyMap.regionAt(BodyMap.FRONT, 50, 200), "gap between the lower legs");
+        assertNull(BodyMap.regionAt(BodyMap.FRONT, 92, 60));
+        // a near miss snaps to the closest part, so small parts are easy to hit
+        BodyMap.Region hand = BodyMap.regionAt(BodyMap.FRONT, 20, 115);
+        assertFalse(hand.contains(hand.x1 + 1.5f, 115));
+        assertSame(hand, BodyMap.regionAt(BodyMap.FRONT, hand.x1 + 1.5f, 115));
         for (String v : new String[] { BodyMap.FRONT, BodyMap.BACK }) {
-            assertEquals(17, BodyMap.regions(v).size());
-            for (BodyMap.Region r : BodyMap.regions(v)) {
+            List<BodyMap.Region> rs = BodyMap.regions(v);
+            assertEquals(17, rs.size());
+            java.util.Set<String> names = new java.util.HashSet<>();
+            for (BodyMap.Region r : rs) {
+                assertTrue(names.add(r.name), "duplicate " + r.name);
                 assertTrue(r.x0 >= 0 && r.x1 <= BodyMap.WIDTH && r.y0 >= 0 && r.y1 <= BodyMap.HEIGHT, r.name);
-                assertNotNull(BodyMap.regionAt(v, (r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2), r.name);
+                float[] c = r.centre();
+                assertSame(r, BodyMap.regionAt(v, c[0], c[1]), r.name + " must own its own centre");
+                // regions must not overlap: no other region contains this centre
+                for (BodyMap.Region o : rs) if (o != r) assertFalse(o.contains(c[0], c[1]), o.name + " overlaps " + r.name);
             }
+        }
+        // the figure is symmetric: mirrored points land on the opposite side's part
+        for (float[] pt : new float[][] { { 72, 58 }, { 76, 92 }, { 80, 115 }, { 59, 140 }, { 59, 185 }, { 60, 211 } }) {
+            String a = BodyMap.regionAt(BodyMap.FRONT, pt[0], pt[1]).name, b = BodyMap.regionAt(BodyMap.FRONT, 100 - pt[0], pt[1]).name;
+            assertEquals(a.replaceFirst("^L ", "R "), b);
         }
     }
 

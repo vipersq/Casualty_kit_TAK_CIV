@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3 (unreleased)
+
+- Body diagram redrawn as a smooth anatomical figure; regions are tapped by their real outline, and a
+  near miss snaps to the closest part.
+- New toolbar icon (map pin with medical cross). Alternatives are kept in `docs/icons/`.
+
 ## 0.2 (unreleased)
 
 - Body diagram (front and back): tap a body region to record an injury; numbered markers match the list.
